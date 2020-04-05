@@ -17,9 +17,16 @@ const checkNotFoundId = (req, res, next) => {
   next()
 }
 
-const checkRequiredFields = (req, res, next) => {
+const checkRequiredCreateFields = (req, res, next) => {
   if (!req.body.title || !req.body.id) {
     return res.status(400).send({ error: 'title or id is missing' })
+  }
+  next()
+}
+
+const checkRequiredTitleField = (req, res, next) => {
+  if (!req.body.title) {
+    return res.status(400).send({ error: 'title is required' })
   }
   next()
 }
@@ -33,9 +40,31 @@ app.get('/projects/:id', checkNotFoundId, async (req, res) => {
   res.json(project)
 })
 
-app.post('/projects', checkRequiredFields, async (req, res) => {
-  const project = {tasks: [], ...req.body }
+app.post('/projects', checkRequiredCreateFields, async (req, res) => {
+  const { id, title } = req.body
+  const project = { id, title, tasks: [] }
   projects.push(project)
+  res.status(201).json(project)
+})
+
+app.put('/projects/:id', checkRequiredTitleField, checkNotFoundId, async (req, res) => {
+  const { title } = req.body
+  const index = projects.findIndex(project => project.id === req.params.id)
+  projects[index] = { ...projects[index], title }
+  res.status(200).json(projects[index])
+})
+
+app.delete('/projects/:id', checkNotFoundId, async (req, res) => {
+  const index = projects.findIndex(project => project.id === req.params.id)
+  projects.splice(index, 1)
+  res.status(200).json()
+})
+
+app.post('/projects/:id/tasks', checkNotFoundId, checkRequiredTitleField, async (req, res) => {
+  const { title } = req.body
+  const projectIndex = projects.findIndex(project => project.id === req.params.id)
+  let project = projects[projectIndex]
+  project.tasks = [...project.tasks, title]
   res.status(201).json(project)
 })
 
