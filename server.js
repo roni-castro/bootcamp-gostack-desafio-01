@@ -2,6 +2,7 @@ const express = require('express')
 const app = express()
 
 app.use(express.json())
+let numberOfRequestMade = 0
 
 let projects = []
 
@@ -30,6 +31,12 @@ const checkRequiredTitleField = (req, res, next) => {
   }
   next()
 }
+
+app.use((req, res, next) => {
+  numberOfRequestMade++
+  console.log('Number of requests made: ', numberOfRequestMade)
+  next()
+})
 
 app.get('/projects', async (req, res) => {
   res.json({ projects })
