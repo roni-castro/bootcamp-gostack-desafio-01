@@ -15,7 +15,7 @@ const checkNotFoundId = (req, res, next) => {
   if (!project) {
     return res.status(404).send({ error: 'Project not found' })
   }
-  next()
+  return next()
 }
 
 const checkDuplicateId = (req, res, next) => {
@@ -23,27 +23,27 @@ const checkDuplicateId = (req, res, next) => {
   if (project) {
     return res.status(400).send({ error: 'Project already exists' })
   }
-  next()
+  return next()
 }
 
 const checkRequiredCreateFields = (req, res, next) => {
   if (!req.body.title || !req.body.id) {
     return res.status(400).send({ error: 'title or id is missing' })
   }
-  next()
+  return next()
 }
 
 const checkRequiredTitleField = (req, res, next) => {
   if (!req.body.title) {
     return res.status(400).send({ error: 'title is required' })
   }
-  next()
+  return next()
 }
 
 app.use((req, res, next) => {
   numberOfRequestMade++
   console.log('Number of requests made: ', numberOfRequestMade)
-  next()
+  return next()
 })
 
 app.get('/projects', async (req, res) => {
@@ -64,9 +64,9 @@ app.post('/projects', checkRequiredCreateFields, checkDuplicateId, async (req, r
 
 app.put('/projects/:id', checkRequiredTitleField, checkNotFoundId, async (req, res) => {
   const { title } = req.body
-  const index = projects.findIndex(project => project.id === req.params.id)
-  projects[index] = { ...projects[index], title }
-  res.status(200).json(projects[index])
+  const project = projects.find(p => p.id == req.params.id)
+  project.title = title
+  res.status(200).json(project)
 })
 
 app.delete('/projects/:id', checkNotFoundId, async (req, res) => {
@@ -77,10 +77,9 @@ app.delete('/projects/:id', checkNotFoundId, async (req, res) => {
 
 app.post('/projects/:id/tasks', checkNotFoundId, checkRequiredTitleField, async (req, res) => {
   const { title } = req.body
-  const projectIndex = projects.findIndex(project => project.id === req.params.id)
-  let project = projects[projectIndex]
-  project.tasks = [...project.tasks, title]
-  res.status(201).json(project)
+  const project = projects.find(p => p.id === req.params.id)
+  project.tasks.push(title)
+  return res.status(201).json(project)
 })
 
 app.mockDb = mockDb
