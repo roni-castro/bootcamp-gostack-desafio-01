@@ -18,6 +18,14 @@ const checkNotFoundId = (req, res, next) => {
   next()
 }
 
+const checkDuplicateId = (req, res, next) => {
+  const project = projects.find(project => project.id === req.body.id)
+  if (project) {
+    return res.status(400).send({ error: 'Project already exists' })
+  }
+  next()
+}
+
 const checkRequiredCreateFields = (req, res, next) => {
   if (!req.body.title || !req.body.id) {
     return res.status(400).send({ error: 'title or id is missing' })
@@ -47,7 +55,7 @@ app.get('/projects/:id', checkNotFoundId, async (req, res) => {
   res.json(project)
 })
 
-app.post('/projects', checkRequiredCreateFields, async (req, res) => {
+app.post('/projects', checkRequiredCreateFields, checkDuplicateId, async (req, res) => {
   const { id, title } = req.body
   const project = { id, title, tasks: [] }
   projects.push(project)

@@ -62,6 +62,13 @@ describe('Projects', () => {
       expect(response.body).toMatchObject({id: data.id, title: data.title, tasks: [] })
       done()
     })
+    it('respond with Bad Request if project already exists', async done => {
+      const data = { id: '1', title: 'Title' }
+      const response = await request.post('/projects').send(data)
+      expect(response.status).toBe(400)
+      expect(response.body.error).toBe('Project already exists')
+      done()
+    })
     describe('respond with Bad Request if not passed required fields', () => {
       test.each([
         [{ id: '11' }, 400],
